@@ -6,7 +6,7 @@ st.set_page_config(page_title="Dashboard Prioritas Pertanian 2026", layout="wide
 # Load Data
 @st.cache_data
 def load_data():
-    df = pd.read_csv("2026.csv")
+    df = pd.read_csv("2026.csv",sep=";")
     return df
 
 df = load_data()
@@ -45,7 +45,7 @@ with tab3:
     fig = px.bar(top_global, x='komoditas', y='prediksi_produksi_2026', 
                  color='provinsi', title="Visualisasi 5 Besar Prioritas Produksi")
     st.plotly_chart(fig, use_container_width=True)
-    
+
 with tab4:
     st.subheader("Fitur 4: Top 3 Prioritas Tiap Komoditas")
     # Mengambil top 3 untuk setiap komoditas
