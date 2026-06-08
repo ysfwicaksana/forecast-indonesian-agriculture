@@ -1,75 +1,53 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
-# --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Dashboard Pemodelan", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Dashboard Prioritas Pertanian 2026", layout="wide")
 
-# --- JUDUL DASHBOARD ---
-st.title("📊 Prototype Dashboard Hasil Pemodelan")
-st.markdown("""
-Dashboard interaktif ini menampilkan hasil gabungan dari pemodelan **XGBoost** (Prediksi), 
-**TOPSIS** (Pemeringkatan), dan **K-Means** (Klastering).
-""")
-st.divider()
-
-# --- FUNGSI LOAD DATA ---
+# Load Data
 @st.cache_data
 def load_data():
-    # Pastikan nama file sesuai dengan yang ada di folder Anda
-    df_hist = pd.read_csv("2012-2025.csv",sep=";")
-    df_pred = pd.read_csv("2026.csv",sep=";")
-    return df_hist, df_pred
+    df = pd.read_csv("2026.csv")
+    return df
 
-# Memuat data
-try:
-    df_hist, df_pred = load_data()
-except FileNotFoundError:
-    st.error("File CSV tidak ditemukan. Pastikan file berada di folder yang sama dengan app.py.")
-    st.stop()
+df = load_data()
 
-# --- TABS NAVIGASI ---
-tab1, tab2, tab3 = st.tabs(["📋 Data Historis (2012-2025)", "🔮 Data Prediksi (2026)", "📈 Visualisasi Cepat"])
+st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 
-# --- TAB 1: DATA HISTORIS ---
+# --- FITUR 1: Wilayah -> Komoditas ---
+st.sidebar.header("Filter Analisis")
+wilayah_terpilih = st.sidebar.selectbox("Fitur 1: Pilih Wilayah", sorted(df['provinsi'].unique()))
+
+# --- FITUR 2: Komoditas -> Wilayah ---
+komoditas_terpilih = st.sidebar.selectbox("Fitur 2: Pilih Komoditas", sorted(df['komoditas'].unique()))
+
+# --- Tampilan Utama ---
+tab1, tab2, tab3, tab4 = st.tabs(["Wilayah & Komoditas", "Komoditas & Wilayah", "Prioritas Global", "Prioritas per Komoditas"])
+
 with tab1:
-    st.subheader("Data Historis & Hasil Klastering/Peringkat (2012-2025)")
-    st.dataframe(df_hist, use_container_width=True)
-    
-    st.caption(f"Total baris data: {df_hist.shape[0]}")
+    st.subheader(f"Daftar Komoditas Prioritas di {wilayah_terpilih}")
+    data_wilayah = df[df['provinsi'] == wilayah_terpilih].sort_values('ranking_topsis_global')
+    st.dataframe(data_wilayah[['komoditas', 'prediksi_produksi_2026', 'ranking_topsis_global']], use_container_width=True)
 
-# --- TAB 2: DATA PREDIKSI ---
 with tab2:
-    st.subheader("Hasil Prediksi XGBoost (Tahun 2026)")
-    st.dataframe(df_pred, use_container_width=True)
-    
-    st.caption(f"Total baris data: {df_pred.shape[0]}")
+    st.subheader(f"Daftar Wilayah Prioritas untuk {komoditas_terpilih}")
+    data_komoditas = df[df['komoditas'] == komoditas_terpilih].sort_values('ranking_topsis_global')
+    st.dataframe(data_komoditas[['provinsi', 'prediksi_produksi_2026', 'ranking_topsis_global']], use_container_width=True)
 
-# --- TAB 3: VISUALISASI ---
 with tab3:
-    st.subheader("Eksplorasi Data Interaktif")
-    st.write("Pilih kolom yang ingin divisualisasikan dari data prediksi 2026:")
+    st.subheader("Fitur 3: Top 5 Prioritas Global")
+    top_global = df.sort_values('ranking_topsis_global').head(5)
     
-    # Mengambil daftar kolom dari dataframe prediksi
-    kolom_tersedia = df_pred.columns.tolist()
+    # Menampilkan tabel
+    st.dataframe(top_global[['provinsi', 'komoditas', 'ranking_topsis_global', 'prediksi_produksi_2026']], use_container_width=True)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        x_axis = st.selectbox("Pilih Kolom Sumbu X:", kolom_tersedia, index=0)
-    with col2:
-        # Default sumbu Y ke kolom kedua jika ada
-        y_index = 1 if len(kolom_tersedia) > 1 else 0
-        y_axis = st.selectbox("Pilih Kolom Sumbu Y:", kolom_tersedia, index=y_index)
-        
-    # Menampilkan Scatter Plot yang berguna untuk melihat sebaran K-Means atau Skor TOPSIS
-    if x_axis and y_axis:
-        fig = px.scatter(
-            df_pred, 
-            x=x_axis, 
-            y=y_axis, 
-            title=f"Hubungan antara {x_axis} dan {y_axis}",
-            template="plotly_white",
-            # Jika ada kolom klaster, Anda bisa mengaktifkan parameter color di bawah ini:
-            # color="Nama_Kolom_Cluster_Anda" 
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    # Menambahkan Visualisasi Plotly
+    import plotly.express as px
+    fig = px.bar(top_global, x='komoditas', y='prediksi_produksi_2026', 
+                 color='provinsi', title="Visualisasi 5 Besar Prioritas Produksi")
+    st.plotly_chart(fig, use_container_width=True)
+    
+with tab4:
+    st.subheader("Fitur 4: Top 3 Prioritas Tiap Komoditas")
+    # Mengambil top 3 untuk setiap komoditas
+    top_per_komoditas = df.sort_values(['komoditas', 'ranking_topsis_per_komoditas']).groupby('komoditas').head(3)
+    st.dataframe(top_per_komoditas[['komoditas', 'provinsi', 'ranking_topsis_per_komoditas', 'prediksi_produksi_2026']], use_container_width=True)
