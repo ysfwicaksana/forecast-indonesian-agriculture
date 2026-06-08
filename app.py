@@ -24,7 +24,7 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 # =====================
 @st.cache_data
 def load_data():
-    df = pd.read_csv("sampel_2026.csv", sep=";", decimal=",")
+    df = pd.read_csv("sample_2026.csv", sep=";", decimal=",")
 
     # produksi negatif menjadi 0
     df["prediksi_produksi_2026"] = (
