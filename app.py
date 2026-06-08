@@ -9,7 +9,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Sembunyikan menu streamlit
 hide_st_style = """
 <style>
 #MainMenu {visibility:hidden;}
@@ -24,17 +23,33 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 # =====================
 @st.cache_data
 def load_data():
-    df = pd.read_csv("sample_2026.csv", sep=";", decimal=",")
 
-    # produksi negatif menjadi 0
-    df["prediksi_produksi_2026"] = (
-        df["prediksi_produksi_2026"]
+    df_wilayah = pd.read_csv(
+        "wilayah.csv",
+        sep=";",
+        decimal=","
+    )
+
+    df_komoditas = pd.read_csv(
+        "komoditas.csv",
+        sep=";",
+        decimal=","
+    )
+
+    df_wilayah["prediksi_produksi_2026"] = (
+        df_wilayah["prediksi_produksi_2026"]
         .clip(lower=0)
     )
 
-    return df
+    df_komoditas["prediksi_produksi_2026"] = (
+        df_komoditas["prediksi_produksi_2026"]
+        .clip(lower=0)
+    )
 
-df = load_data()
+    return df_wilayah, df_komoditas
+
+
+df_wilayah, df_komoditas = load_data()
 
 # =====================
 # Judul
@@ -42,54 +57,112 @@ df = load_data()
 st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 
 # =====================
-# Pilih Wilayah
+# Tabs
 # =====================
-wilayah = st.selectbox(
-    "Pilih Wilayah",
-    sorted(df["provinsi"].unique())
+tab1, tab2 = st.tabs(
+    [
+        "📍 Prioritas per Wilayah",
+        "🌱 Prioritas per Komoditas"
+    ]
 )
 
-# Filter wilayah
-df_wilayah = df[df["provinsi"] == wilayah]
+# =====================================================
+# TAB 1 : WILAYAH
+# =====================================================
+with tab1:
 
-st.markdown(f"## 📍 {wilayah}")
+    wilayah = st.selectbox(
+        "Pilih Wilayah",
+        sorted(df_wilayah["provinsi"].unique()),
+        key="wilayah"
+    )
 
-# =====================
-# Tampilkan Top 3 per Subsektor
-# =====================
+    data_wilayah = (
+        df_wilayah[
+            df_wilayah["provinsi"] == wilayah
+        ]
+    )
 
-subsektor_urut = [
-    "Pangan",
-    "Hortikultura",
-    "Perkebunan"
-]
+    st.markdown(f"## 📍 {wilayah}")
 
-for subsektor in subsektor_urut:
-
-    data_sub = df_wilayah[
-        df_wilayah["subsektor"] == subsektor
+    subsektor_urut = [
+        "Pangan",
+        "Hortikultura",
+        "Perkebunan"
     ]
 
-    if len(data_sub) == 0:
-        continue
+    for subsektor in subsektor_urut:
+
+        data_sub = data_wilayah[
+            data_wilayah["subsektor"] == subsektor
+        ]
+
+        if len(data_sub) == 0:
+            continue
+
+        top3 = (
+            data_sub
+            .nsmallest(
+                3,
+                "ranking_topsis_global"
+            )
+            [
+                [
+                    "subsektor",
+                    "komoditas",
+                    "prediksi_produksi_2026",
+                    "ranking_topsis_global"
+                ]
+            ]
+            .reset_index(drop=True)
+        )
+
+        top3.index = top3.index + 1
+
+        st.subheader(f"🌱 {subsektor}")
+
+        st.dataframe(
+            top3,
+            use_container_width=True
+        )
+
+# =====================================================
+# TAB 2 : KOMODITAS
+# =====================================================
+with tab2:
+
+    komoditas = st.selectbox(
+        "Pilih Komoditas",
+        sorted(df_komoditas["komoditas"].unique()),
+        key="komoditas"
+    )
+
+    data_komoditas = (
+        df_komoditas[
+            df_komoditas["komoditas"] == komoditas
+        ]
+    )
+
+    st.markdown(f"## 🌱 {komoditas}")
 
     top3 = (
-        data_sub
-        .nsmallest(3, "ranking_topsis_global")
+        data_komoditas
+        .nsmallest(
+            3,
+            "ranking_topsis_per_komoditas"
+        )
         [
             [
+                "provinsi",
                 "subsektor",
-                "komoditas",
                 "prediksi_produksi_2026",
-                "ranking_topsis_global"
+                "ranking_topsis_per_komoditas"
             ]
         ]
         .reset_index(drop=True)
     )
 
     top3.index = top3.index + 1
-
-    st.subheader(f"🌱 {subsektor}")
 
     st.dataframe(
         top3,
