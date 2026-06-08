@@ -15,13 +15,11 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 
 st.set_page_config(page_title="Dashboard Prioritas Pertanian 2026", layout="wide")
 
-# Load Data
 @st.cache_data
 def load_data():
     df = pd.read_csv("2026.csv", sep=";")
-
-     # Filter: hanya tampilkan prediksi > 0
-    df = df[df['prediksi_produksi_2026'] > 0]
+    # Ubah nilai minus jadi 0
+    df['prediksi_produksi_2026'] = df['prediksi_produksi_2026'].clip(lower=0)
     return df
 
 df = load_data()
