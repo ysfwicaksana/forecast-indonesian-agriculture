@@ -17,8 +17,8 @@ st.divider()
 @st.cache_data
 def load_data():
     # Pastikan nama file sesuai dengan yang ada di folder Anda
-    df_hist = pd.read_csv("2012-2025.csv")
-    df_pred = pd.read_csv("2026.csv")
+    df_hist = pd.read_csv("2012-2025.csv",sep=";")
+    df_pred = pd.read_csv("2026.csv",sep=";")
     return df_hist, df_pred
 
 # Memuat data
