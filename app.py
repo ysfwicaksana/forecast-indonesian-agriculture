@@ -56,7 +56,7 @@ def load_data():
     return df_wilayah, df_komoditas, df_cluster
 
 
-df_wilayah, df_komoditas = load_data()
+df_wilayah, df_komoditas, df_cluster = load_data()
 
 # =====================
 # Judul
