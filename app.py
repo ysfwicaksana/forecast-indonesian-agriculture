@@ -45,10 +45,10 @@ def load_data():
 df_global, df_cluster = load_data()
 
 # =====================
-# Load GeoJSON
+# Load GeoJSON (38-provinces.json)
 # =====================
 with open(
-    "indonesia-38-provinces.geojson",
+    "38-provinces.json",
     "r",
     encoding="utf-8"
 ) as f:
@@ -177,7 +177,7 @@ with tab2:
 
 
 # =====================================================
-# TAB 4 : PETA CLUSTER (SIMPLE VERSION)
+# TAB 4 : PETA CLUSTER
 # =====================================================
 with tab4:
 
@@ -193,7 +193,7 @@ with tab4:
     # Persiapan Data Choropleth
     # ====================================
     
-    # Ambil nama provinsi dari GeoJSON
+    # Ambil nama provinsi dari GeoJSON (38-provinces.json)
     geojson_provinces = [
         feature["properties"]["PROVINSI"]
         for feature in indonesia_geo["features"]
@@ -205,15 +205,16 @@ with tab4:
     })
     
     # Merge dengan data cluster
+    # PERHATIAN: Pastikan nama provinsi di CSV cocok dengan GeoJSON
     map_data = map_data.merge(
-        df_cluster,
+        df_cluster[["provinsi", "kluster"]].drop_duplicates(),
         left_on="provinsi_geo",
         right_on="provinsi",
         how="left"
     )
     
-    # Buat kolom untuk warna (numeric: 1 untuk ada, 0 untuk tidak)
-    map_data["is_in_cluster"] = map_data.apply(
+    # Buat kolom numeric untuk color (1 = cluster terpilih, 0 = lain)
+    map_data["is_selected"] = map_data.apply(
         lambda row: 1 
         if pd.notna(row["kluster"]) and row["kluster"] == cluster_selected 
         else 0,
@@ -230,30 +231,41 @@ with tab4:
         geojson=indonesia_geo,
         locations="provinsi_geo",
         featureidkey="properties.PROVINSI",
-        color="is_in_cluster",
+        color="is_selected",
         hover_name="provinsi_display",
         hover_data={
             "provinsi_geo": False,
             "kluster": True,
             "provinsi_display": False,
-            "is_in_cluster": False
+            "is_selected": False
         },
-        color_continuous_scale=["white", "#d32f2f"],
-        title=f"Persebaran Cluster {cluster_selected}"
+        color_continuous_scale=["#f0f0f0", "#2e7d32"],  # Abu-abu light ke hijau
+        title=f"Persebaran Cluster {cluster_selected}",
+        labels={"is_selected": "Cluster"}
     )
 
     fig.update_geos(
         fitbounds="locations",
         visible=False,
-        bgcolor="white"  # Background putih
+        bgcolor="white"
     )
 
     fig.update_layout(
         height=650,
         margin=dict(l=0, r=0, t=50, b=0),
-        showlegend=True,
+        coloraxis_colorbar=dict(
+            title="Cluster",
+            tickvals=[0, 1],
+            ticktext=["Lain", f"Cluster {cluster_selected}"]
+        ),
         paper_bgcolor="white",
         plot_bgcolor="white"
+    )
+
+    # Update trace untuk border/outline yang lebih terang
+    fig.update_traces(
+        marker_line_color="black",
+        marker_line_width=0.5
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -267,7 +279,10 @@ with tab4:
         df_cluster[
             df_cluster["kluster"] == cluster_selected
         ]
+        [["provinsi"]]
+        .drop_duplicates()
         .sort_values("provinsi")
+        .reset_index(drop=True)
     )
 
     col1, col2 = st.columns(2)
@@ -282,14 +297,6 @@ with tab4:
             df_cluster["provinsi"].nunique()
         )
 
-    daftar = (
-        wilayah_cluster[
-            ["provinsi"]
-        ]
-        .drop_duplicates()
-        .reset_index(drop=True)
-    )
+    wilayah_cluster.index += 1
 
-    daftar.index += 1
-
-    st.dataframe(daftar, use_container_width=True)
+    st.dataframe(wilayah_cluster, use_container_width=True)
