@@ -11,14 +11,14 @@ st.set_page_config(
     layout="wide"
 )
 
-hide_st_style = """
-<style>
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
-</style>
-"""
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# hide_st_style = """
+# <style>
+# #MainMenu {visibility:hidden;}
+# footer {visibility:hidden;}
+# header {visibility:hidden;}
+# </style>
+# """
+# st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # =====================
 # Load Data
@@ -205,7 +205,7 @@ with tab3:
     # Pilih subsektor
     subsektor = st.selectbox(
         "Pilih Subsektor",
-        sorted(df_cluster["subsektor"].unique()),
+        sorted(df_global["subsektor"].unique()),
         key="subsektor_cluster"
     )
     
