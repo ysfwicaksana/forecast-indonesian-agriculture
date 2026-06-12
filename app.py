@@ -45,7 +45,7 @@ def load_data():
     # )
 
     df_cluster = pd.read_csv(
-        "summary_cluster.csv",
+        "cluster_provinces.csv",
         sep=";",
         decimal=","
     )
@@ -301,39 +301,19 @@ with tab3:
 # =====================================================
 with tab4:
 
-    st.markdown("## 🗺️ Peta Persebaran Cluster")
+    st.markdown("## 🗺️ Persebaran Cluster Indonesia")
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        subsektor = st.selectbox(
-            "Pilih Subsektor",
-            sorted(
-                df_cluster["subsektor"].unique()
-            ),
-            key="map_subsektor"
-        )
-
-    data_sub = (
-        df_cluster[
-            df_cluster["subsektor"] == subsektor
-        ]
+    cluster = st.selectbox(
+        "Pilih Cluster",
+        sorted(df_cluster["kluster"].unique()),
+        key="map_cluster"
     )
-
-    with col2:
-        cluster = st.selectbox(
-            "Pilih Cluster",
-            sorted(
-                data_sub["kluster"].unique()
-            ),
-            key="map_cluster"
-        )
 
     # ====================================
     # DATA PETA
     # ====================================
 
-    map_data = data_sub.copy()
+    map_data = df_cluster.copy()
 
     map_data["status"] = "Cluster Lain"
 
@@ -349,7 +329,7 @@ with tab4:
         featureidkey="properties.PROVINSI",
         color="status",
         hover_name="provinsi",
-        title=f"Persebaran Cluster {cluster} - {subsektor}"
+        title=f"Persebaran Cluster {cluster}"
     )
 
     fig.update_geos(
@@ -373,18 +353,18 @@ with tab4:
     )
 
     # ====================================
-    # LIST WILAYAH
+    # LIST PROVINSI
     # ====================================
 
     wilayah_cluster = (
-        data_sub[
-            data_sub["kluster"] == cluster
+        df_cluster[
+            df_cluster["kluster"] == cluster
         ]
         .sort_values("provinsi")
     )
 
     st.subheader(
-        f"📍 Wilayah dalam Cluster {cluster}"
+        f"📍 Provinsi dalam Cluster {cluster}"
     )
 
     st.metric(
@@ -396,6 +376,7 @@ with tab4:
         wilayah_cluster[
             ["provinsi"]
         ]
+        .drop_duplicates()
         .reset_index(drop=True)
     )
 
