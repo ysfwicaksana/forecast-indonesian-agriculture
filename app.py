@@ -249,7 +249,7 @@ with tab4:
         projection_type="mercator",
         showland=True,
         landcolor="rgba(243, 243, 243, 0.5)",
-        coastcolor="rgba(204, 204, 204, 0.5)",
+        coastlinecolor="rgba(204, 204, 204, 0.5)",
         visible=True,
         bgcolor="white",
         showlakes=True,
