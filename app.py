@@ -240,7 +240,7 @@ with tab4:
         },
         color_discrete_map={
             "Ya": "#d32f2f",  # Merah
-            "Tidak": "rgba(0,0,0,0)"  # Transparent
+            "Tidak": "white"  # Putih
         },
         title=f"Persebaran Cluster {cluster_selected}"
     )
