@@ -11,14 +11,19 @@ st.set_page_config(
     layout="wide"
 )
 
-# hide_st_style = """
-# <style>
-# #MainMenu {visibility:hidden;}
-# footer {visibility:hidden;}
-# header {visibility:hidden;}
-# </style>
-# """
-# st.markdown(hide_st_style, unsafe_allow_html=True)
+# =====================
+# Fungsi untuk normalize nama provinsi
+# =====================
+def normalize_province_name(name):
+    """
+    Normalisasi nama provinsi:
+    - Ubah ke lowercase
+    - Hapus spasi ganda
+    - Strip whitespace awal/akhir
+    """
+    if pd.isna(name):
+        return ""
+    return str(name).strip().lower()
 
 # =====================
 # Load Data
@@ -31,18 +36,6 @@ def load_data():
         sep=";",
         decimal=","
     )
-
-    # df_wilayah = pd.read_csv(
-    #     "wilayah.csv",
-    #     sep=";",
-    #     decimal=","
-    # )
-
-    # df_komoditas = pd.read_csv(
-    #     "komoditas.csv",
-    #     sep=";",
-    #     decimal=","
-    # )
 
     df_cluster = pd.read_csv(
         "cluster_provinces.csv",
@@ -60,11 +53,6 @@ def load_data():
         .clip(lower=0)
     )
 
-    # df_komoditas["prediksi_produksi_2026"] = (
-    #     df_komoditas["prediksi_produksi_2026"]
-    #     .clip(lower=0)
-    # )
-
     return df_global, df_cluster
 
 
@@ -80,6 +68,14 @@ with open(
 ) as f:
     indonesia_geo = json.load(f)
 
+# Normalize nama provinsi di GeoJSON
+for feature in indonesia_geo["features"]:
+    original_name = feature["properties"]["PROVINSI"]
+    feature["properties"]["PROVINSI_NORMALIZED"] = normalize_province_name(original_name)
+
+# Normalize nama provinsi di dataframe
+df_cluster["provinsi_normalized"] = df_cluster["provinsi"].apply(normalize_province_name)
+
 # =====================
 # Judul
 # =====================
@@ -88,7 +84,7 @@ st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 # =====================
 # Tabs
 # =====================
-tab1, tab2,  tab4 = st.tabs(
+tab1, tab2, tab4 = st.tabs(
     [
         "📍 Prioritas per Wilayah",
         "🌱 Prioritas per Komoditas",
@@ -228,14 +224,19 @@ with tab4:
         "status"
     ] = f"Cluster {cluster}"
 
+    # Gunakan provinsi_normalized untuk location matching
     fig = px.choropleth(
         map_data,
         geojson=indonesia_geo,
-        locations="provinsi",
-        featureidkey="properties.PROVINSI",
+        locations="provinsi_normalized",
+        featureidkey="properties.PROVINSI_NORMALIZED",
         color="status",
-        hover_name="provinsi",
-        title=f"Persebaran Cluster {cluster}"
+        hover_name="provinsi",  # Tampilkan nama asli saat hover
+        title=f"Persebaran Cluster {cluster}",
+        color_discrete_map={
+            f"Cluster {cluster}": "#1f77b4",
+            "Cluster Lain": "#d3d3d3"
+        }
     )
 
     fig.update_geos(
@@ -292,3 +293,8 @@ with tab4:
         daftar,
         use_container_width=True
     )
+
+    # Debug info (bisa dihapus nanti)
+    with st.expander("🔍 Debug Info"):
+        st.write(f"Jumlah provinsi yang match dengan GeoJSON: {len(wilayah_cluster)}")
+        st.write(f"Total provinsi di CSV: {len(df_cluster['provinsi'].unique())}")
