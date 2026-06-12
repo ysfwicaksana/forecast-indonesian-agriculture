@@ -247,7 +247,6 @@ with tab4:
     )
 
     fig.update_geos(
-        scope="asia",
         projection_type="mercator",
         showland=True,
         landcolor="rgba(243, 243, 243, 0.5)",
