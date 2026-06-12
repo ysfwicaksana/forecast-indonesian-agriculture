@@ -239,7 +239,7 @@ with tab4:
             "in_cluster": False
         },
         color_discrete_map={
-            "Ya": "#1f77b4",  # Biru
+            "Ya": "#d32f2f",  # Merah
             "Tidak": "rgba(0,0,0,0)"  # Transparent
         },
         title=f"Persebaran Cluster {cluster_selected}"
@@ -247,13 +247,16 @@ with tab4:
 
     fig.update_geos(
         fitbounds="locations",
-        visible=False
+        visible=False,
+        bgcolor="white"  # Background putih
     )
 
     fig.update_layout(
         height=650,
         margin=dict(l=0, r=0, t=50, b=0),
-        showlegend=True
+        showlegend=True,
+        paper_bgcolor="white",
+        plot_bgcolor="white"
     )
 
     st.plotly_chart(fig, use_container_width=True)
