@@ -213,11 +213,11 @@ with tab4:
         how="left"
     )
     
-    # Buat kolom numeric untuk color (1 = cluster terpilih, 0 = lain)
-    map_data["is_selected"] = map_data.apply(
-        lambda row: 1 
+    # Buat kolom kategori untuk warna (lebih jelas)
+    map_data["warna_cluster"] = map_data.apply(
+        lambda row: "Cluster Terpilih" 
         if pd.notna(row["kluster"]) and row["kluster"] == cluster_selected 
-        else 0,
+        else "Cluster Lain",
         axis=1
     )
     
@@ -231,27 +231,29 @@ with tab4:
         geojson=indonesia_geo,
         locations="provinsi_geo",
         featureidkey="properties.PROVINSI",
-        color="is_selected",
+        color="warna_cluster",
         hover_name="provinsi_display",
         hover_data={
             "provinsi_geo": False,
             "kluster": True,
             "provinsi_display": False,
-            "is_selected": False
+            "warna_cluster": False
         },
-        color_continuous_scale=["#f0f0f0", "#2e7d32"],  # Abu-abu light ke hijau
-        title=f"Persebaran Cluster {cluster_selected}",
-        labels={"is_selected": "Cluster"}
+        color_discrete_map={
+            "Cluster Terpilih": "#2e7d32",  # Hijau
+            "Cluster Lain": "#e8e8e8"  # Abu-abu
+        },
+        title=f"Persebaran Cluster {cluster_selected}"
     )
 
-    fig.update_geos(    
-        fitbounds="locations",
-        bgcolor="gray",
+    fig.update_geos(
+        scope="asia",
         projection_type="mercator",
         showland=True,
         landcolor="rgba(243, 243, 243, 0.5)",
-        coastlinecolor="rgba(204, 204, 204, 0.5)",
+        coastcolor="rgba(204, 204, 204, 0.5)",
         visible=True,
+        bgcolor="white",
         showlakes=True,
         lakecolor="rgba(255, 255, 255, 0.5)",
         lataxis=dict(range=[-11, 6]),
@@ -261,11 +263,6 @@ with tab4:
     fig.update_layout(
         height=650,
         margin=dict(l=0, r=0, t=50, b=0),
-        coloraxis_colorbar=dict(
-            title="Cluster",
-            tickvals=[0, 1],
-            ticktext=["Lain", f"Cluster {cluster_selected}"]
-        ),
         paper_bgcolor="white",
         plot_bgcolor="white"
     )
@@ -309,16 +306,4 @@ with tab4:
 
     st.dataframe(wilayah_cluster, use_container_width=True)
 
-    # ====================================
-    # DEBUG INFO
-    # ====================================
-    with st.expander("🔍 Debug: Cek Matching Data"):
-        st.write("**Provinsi di GeoJSON yang MATCH dengan CSV:**")
-        matched = map_data[map_data["kluster"].notna()]
-        st.write(f"Total match: {len(matched)}/{len(map_data)}")
-        st.dataframe(matched[["provinsi_geo", "provinsi", "kluster"]], use_container_width=True)
-        
-        st.write("\n**Provinsi di GeoJSON yang TIDAK MATCH:**")
-        not_matched = map_data[map_data["kluster"].isna()]
-        st.write(f"Total tidak match: {len(not_matched)}")
-        st.dataframe(not_matched[["provinsi_geo"]], use_container_width=True)
+    
