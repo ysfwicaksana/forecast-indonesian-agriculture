@@ -249,7 +249,7 @@ with tab4:
         projection_type="mercator",
         showland=True,
         landcolor="rgba(243, 243, 243, 0.5)",
-        coastlinecolor="rgba(204, 204, 204, 0.5)",
+        coastcolor="rgba(204, 204, 204, 0.5)",
         visible=True,
         bgcolor="white",
         showlakes=True,
@@ -308,3 +308,17 @@ with tab4:
     wilayah_cluster.index += 1
 
     st.dataframe(wilayah_cluster, use_container_width=True)
+
+    # ====================================
+    # DEBUG INFO
+    # ====================================
+    with st.expander("🔍 Debug: Cek Matching Data"):
+        st.write("**Provinsi di GeoJSON yang MATCH dengan CSV:**")
+        matched = map_data[map_data["kluster"].notna()]
+        st.write(f"Total match: {len(matched)}/{len(map_data)}")
+        st.dataframe(matched[["provinsi_geo", "provinsi", "kluster"]], use_container_width=True)
+        
+        st.write("\n**Provinsi di GeoJSON yang TIDAK MATCH:**")
+        not_matched = map_data[map_data["kluster"].isna()]
+        st.write(f"Total tidak match: {len(not_matched)}")
+        st.dataframe(not_matched[["provinsi_geo"]], use_container_width=True)
