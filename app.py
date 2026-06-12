@@ -25,17 +25,23 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 @st.cache_data
 def load_data():
 
-    df_wilayah = pd.read_csv(
-        "wilayah.csv",
+    df_global = pd.read_csv(
+        "global.csv",
         sep=";",
         decimal=","
     )
 
-    df_komoditas = pd.read_csv(
-        "komoditas.csv",
-        sep=";",
-        decimal=","
-    )
+    # df_wilayah = pd.read_csv(
+    #     "wilayah.csv",
+    #     sep=";",
+    #     decimal=","
+    # )
+
+    # df_komoditas = pd.read_csv(
+    #     "komoditas.csv",
+    #     sep=";",
+    #     decimal=","
+    # )
 
     df_cluster = pd.read_csv(
         "summary_cluster.csv",
@@ -43,20 +49,20 @@ def load_data():
         decimal=","
     )
 
-    df_wilayah["prediksi_produksi_2026"] = (
-        df_wilayah["prediksi_produksi_2026"]
+    df_global["prediksi_produksi_2026"] = (
+        df_global["prediksi_produksi_2026"]
         .clip(lower=0)
     )
 
-    df_komoditas["prediksi_produksi_2026"] = (
-        df_komoditas["prediksi_produksi_2026"]
-        .clip(lower=0)
-    )
+    # df_komoditas["prediksi_produksi_2026"] = (
+    #     df_komoditas["prediksi_produksi_2026"]
+    #     .clip(lower=0)
+    # )
 
-    return df_wilayah, df_komoditas, df_cluster
+    return df_global, df_cluster
 
 
-df_wilayah, df_komoditas, df_cluster = load_data()
+df_global, df_cluster = load_data()
 
 # =====================
 # Judul
@@ -81,13 +87,13 @@ with tab1:
 
     wilayah = st.selectbox(
         "Pilih Wilayah",
-        sorted(df_wilayah["provinsi"].unique()),
+        sorted(df_global["provinsi"].unique()),
         key="wilayah"
     )
 
     data_wilayah = (
-        df_wilayah[
-            df_wilayah["provinsi"] == wilayah
+        df_global[
+            df_global["provinsi"] == wilayah
         ]
     )
 
@@ -141,13 +147,13 @@ with tab2:
 
     komoditas = st.selectbox(
         "Pilih Komoditas",
-        sorted(df_komoditas["komoditas"].unique()),
+        sorted(df_global["komoditas"].unique()),
         key="komoditas"
     )
 
     data_komoditas = (
-        df_komoditas[
-            df_komoditas["komoditas"] == komoditas
+        df_global[
+            df_global["komoditas"] == komoditas
         ]
     )
 
