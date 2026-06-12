@@ -215,13 +215,11 @@ with tab4:
     # Buat kolom untuk warna
     map_data["warna"] = map_data.apply(
         lambda row: f"Cluster {cluster_selected}" 
-        if row["kluster"] == cluster_selected 
+        if pd.notna(row["kluster"]) and row["kluster"] == cluster_selected 
         else "Cluster Lain",
         axis=1
     )
     
-    # Fill NA untuk provinsi yang tidak ada di data
-    map_data["warna"] = map_data["warna"].fillna("Tidak Ada Data")
     map_data["provinsi_display"] = map_data["provinsi"].fillna(map_data["provinsi_geo"])
     
     # ====================================
@@ -241,10 +239,10 @@ with tab4:
             "warna": False
         },
         color_discrete_map={
-            f"Cluster {cluster_selected}": "#1f77b4",
-            "Cluster Lain": "#e0e0e0",
-            "Tidak Ada Data": "#f5f5f5"
+            f"Cluster {cluster_selected}": "#0d47a1",  # Biru tua
+            "Cluster Lain": "#90caf9"  # Biru muda
         },
+        category_orders={"warna": [f"Cluster {cluster_selected}", "Cluster Lain"]},
         title=f"Persebaran Cluster {cluster_selected}"
     )
 
