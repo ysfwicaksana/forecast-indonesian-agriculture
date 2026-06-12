@@ -1,186 +1,103 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import folium
+from streamlit_folium import st_folium
 import json
-
-# =====================
-# Konfigurasi Halaman
-# =====================
-st.set_page_config(
-    page_title="Dashboard Prioritas Pertanian 2026",
-    layout="wide"
-)
 
 # =====================
 # Load Data
 # =====================
 @st.cache_data
 def load_data():
-
-    df_global = pd.read_csv(
-        "global.csv",
-        sep=";",
-        decimal=","
-    )
-
-    df_cluster = pd.read_csv(
-        "cluster_provinces.csv",
-        sep=";",
-        decimal=","
-    )
-
-    df_global["prediksi_produksi_2026"] = (
-        df_global["prediksi_produksi_2026"]
-        .clip(lower=0)
-    )
-
-    df_global["prediksi_produktivitas_2026"] = (
-        df_global["prediksi_produktivitas_2026"]
-        .clip(lower=0)
-    )
-
+    df_global = pd.read_csv("global.csv", sep=";", decimal=",")
+    df_cluster = pd.read_csv("cluster_provinces.csv", sep=";", decimal=",")
+    
+    df_global["prediksi_produksi_2026"] = df_global["prediksi_produksi_2026"].clip(lower=0)
+    df_global["prediksi_produktivitas_2026"] = df_global["prediksi_produktivitas_2026"].clip(lower=0)
+    
     return df_global, df_cluster
-
 
 df_global, df_cluster = load_data()
 
 # =====================
-# Load GeoJSON (38-provinces.json)
+# Load GeoJSON
 # =====================
-with open(
-    "38-provinces.json",
-    "r",
-    encoding="utf-8"
-) as f:
+with open("38-provinces.json", "r", encoding="utf-8") as f:
     indonesia_geo = json.load(f)
 
 # =====================
-# Judul
+# Konfigurasi Halaman
 # =====================
+st.set_page_config(page_title="Dashboard Prioritas Pertanian 2026", layout="wide")
 st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 
 # =====================
 # Tabs
 # =====================
-tab1, tab2, tab4 = st.tabs(
-    [
-        "📍 Prioritas per Wilayah",
-        "🌱 Prioritas per Komoditas",
-        "🗺️ Peta Cluster"
-    ]
-)
+tab1, tab2, tab4 = st.tabs([
+    "📍 Prioritas per Wilayah",
+    "🌱 Prioritas per Komoditas",
+    "🗺️ Peta Cluster"
+])
 
 # =====================================================
 # TAB 1 : WILAYAH
 # =====================================================
 with tab1:
-
     wilayah = st.selectbox(
         "Pilih Wilayah",
         sorted(df_global["provinsi"].unique()),
         key="wilayah"
     )
 
-    data_wilayah = (
-        df_global[
-            df_global["provinsi"] == wilayah
-        ]
-    )
-
+    data_wilayah = df_global[df_global["provinsi"] == wilayah]
     st.markdown(f"## 📍 {wilayah}")
 
-    subsektor_urut = [
-        "Pangan",
-        "Hortikultura",
-        "Perkebunan"
-    ]
+    subsektor_urut = ["Pangan", "Hortikultura", "Perkebunan"]
 
     for subsektor in subsektor_urut:
-
-        data_sub = data_wilayah[
-            data_wilayah["subsektor"] == subsektor
-        ]
-
+        data_sub = data_wilayah[data_wilayah["subsektor"] == subsektor]
         if len(data_sub) == 0:
             continue
 
         top3 = (
             data_sub
-            .nsmallest(
-                3,
-                "ranking_topsis_global"
-            )
-            [
-                [
-                    "subsektor",
-                    "komoditas",
-                    "prediksi_produksi_2026",
-                    "prediksi_produktivitas_2026",
-                    "ranking_topsis_global"
-                ]
-            ]
+            .nsmallest(3, "ranking_topsis_global")
+            [["subsektor", "komoditas", "prediksi_produksi_2026", 
+              "prediksi_produktivitas_2026", "ranking_topsis_global"]]
             .reset_index(drop=True)
         )
-
         top3.index = top3.index + 1
-
         st.subheader(f"🌱 {subsektor}")
-
-        st.dataframe(
-            top3,
-            use_container_width=True
-        )
+        st.dataframe(top3, use_container_width=True)
 
 # =====================================================
 # TAB 2 : KOMODITAS
 # =====================================================
 with tab2:
-
     komoditas = st.selectbox(
         "Pilih Komoditas",
         sorted(df_global["komoditas"].unique()),
         key="komoditas"
     )
 
-    data_komoditas = (
-        df_global[
-            df_global["komoditas"] == komoditas
-        ]
-    )
-
+    data_komoditas = df_global[df_global["komoditas"] == komoditas]
     st.markdown(f"## 🌱 {komoditas}")
 
     top3 = (
         data_komoditas
-        .nsmallest(
-            3,
-            "ranking_topsis_per_komoditas"
-        )
-        [
-            [
-                "provinsi",
-                "subsektor",
-                "prediksi_produksi_2026",
-                "prediksi_produktivitas_2026",
-                "ranking_topsis_per_komoditas"
-            ]
-        ]
+        .nsmallest(3, "ranking_topsis_per_komoditas")
+        [["provinsi", "subsektor", "prediksi_produksi_2026", 
+          "prediksi_produktivitas_2026", "ranking_topsis_per_komoditas"]]
         .reset_index(drop=True)
     )
-
     top3.index = top3.index + 1
-
-    st.dataframe(
-        top3,
-        use_container_width=True
-    )
-
+    st.dataframe(top3, use_container_width=True)
 
 # =====================================================
-# TAB 4 : PETA CLUSTER
+# TAB 4 : PETA CLUSTER (FOLIUM)
 # =====================================================
 with tab4:
-
     st.markdown("## 🗺️ Persebaran Cluster Indonesia")
 
     cluster_selected = st.selectbox(
@@ -189,100 +106,54 @@ with tab4:
         key="map_cluster"
     )
 
-    # ====================================
-    # Persiapan Data Choropleth
-    # ====================================
-    
-    # Ambil nama provinsi dari GeoJSON (38-provinces.json)
-    geojson_provinces = [
-        feature["properties"]["PROVINSI"]
-        for feature in indonesia_geo["features"]
-    ]
-    
-    # Buat dataframe dengan semua provinsi dari GeoJSON
-    map_data = pd.DataFrame({
-        "provinsi_geo": geojson_provinces
-    })
-    
-    # Merge dengan data cluster
-    # PERHATIAN: Pastikan nama provinsi di CSV cocok dengan GeoJSON
-    map_data = map_data.merge(
-        df_cluster[["provinsi", "kluster"]].drop_duplicates(),
-        left_on="provinsi_geo",
-        right_on="provinsi",
-        how="left"
-    )
-    
-    # Buat kolom kategori untuk warna (lebih jelas)
-    map_data["warna_cluster"] = map_data.apply(
-        lambda row: "Cluster Terpilih" 
-        if pd.notna(row["kluster"]) and row["kluster"] == cluster_selected 
-        else "Cluster Lain",
-        axis=1
-    )
-    
-    map_data["provinsi_display"] = map_data["provinsi"].fillna(map_data["provinsi_geo"])
-    
-    # ====================================
-    # Buat Choropleth
-    # ====================================
-    fig = px.choropleth(
-        map_data,
-        geojson=indonesia_geo,
-        locations="provinsi_geo",
-        featureidkey="properties.PROVINSI",
-        color="warna_cluster",
-        hover_name="provinsi_display",
-        hover_data={
-            "provinsi_geo": False,
-            "kluster": True,
-            "provinsi_display": False,
-            "warna_cluster": False
-        },
-        color_discrete_map={
-            "Cluster Terpilih": "#2e7d32",  # Hijau
-            "Cluster Lain": "#e8e8e8"  # Abu-abu
-        },
-        title=f"Persebaran Cluster {cluster_selected}"
+    # Buat mapping cluster
+    cluster_mapping = {}
+    for _, row in df_cluster.iterrows():
+        prov = row["provinsi"].strip()
+        cluster_mapping[prov] = row["kluster"]
+
+    # Buat Folium Map
+    m = folium.Map(
+        location=[-2, 113],  # Center Indonesia
+        zoom_start=4,
+        tiles="OpenStreetMap"
     )
 
-    fig.update_geos(
-        projection_type="mercator",
-        showland=True,
-        landcolor="rgba(243, 243, 243, 0.5)",
-        coastlinecolor="rgba(204, 204, 204, 0.5)",
-        visible=True,
-        bgcolor="white",
-        showlakes=True,
-        lakecolor="rgba(255, 255, 255, 0.5)",
-        lataxis=dict(range=[-11, 6]),
-        lonaxis=dict(range=[95, 141])
-    )
+    # Add GeoJSON dengan styling
+    for feature in indonesia_geo["features"]:
+        prov_name = feature["properties"]["PROVINSI"]
+        cluster = cluster_mapping.get(prov_name, None)
 
-    fig.update_layout(
-        height=650,
-        margin=dict(l=0, r=0, t=50, b=0),
-        paper_bgcolor="white",
-        plot_bgcolor="white"
-    )
+        # Tentukan warna
+        if cluster == cluster_selected:
+            color = "#2e7d32"  # Hijau
+            fill_opacity = 0.7
+        else:
+            color = "#e8e8e8"  # Abu-abu
+            fill_opacity = 0.3
 
-    # Update trace untuk border/outline yang lebih terang
-    fig.update_traces(
-        marker_line_color="black",
-        marker_line_width=0.5
-    )
+        # Add feature ke map
+        folium.GeoJson(
+            feature,
+            style_function=lambda x, col=color, op=fill_opacity: {
+                "fillColor": col,
+                "color": "black",
+                "weight": 1,
+                "fillOpacity": op
+            },
+            tooltip=folium.Tooltip(prov_name)
+        ).add_to(m)
 
-    st.plotly_chart(fig, use_container_width=True)
+    # Display map
+    st_folium(m, width=1400, height=650)
 
     # ====================================
     # List Provinsi
     # ====================================
     st.subheader(f"📍 Provinsi dalam Cluster {cluster_selected}")
-    
+
     wilayah_cluster = (
-        df_cluster[
-            df_cluster["kluster"] == cluster_selected
-        ]
+        df_cluster[df_cluster["kluster"] == cluster_selected]
         [["provinsi"]]
         .drop_duplicates()
         .sort_values("provinsi")
@@ -291,18 +162,9 @@ with tab4:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.metric(
-            "Jumlah Provinsi",
-            len(wilayah_cluster)
-        )
+        st.metric("Jumlah Provinsi", len(wilayah_cluster))
     with col2:
-        st.metric(
-            "Total Provinsi di Dataset",
-            df_cluster["provinsi"].nunique()
-        )
+        st.metric("Total Provinsi di Dataset", df_cluster["provinsi"].nunique())
 
     wilayah_cluster.index += 1
-
     st.dataframe(wilayah_cluster, use_container_width=True)
-
-    
