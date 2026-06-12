@@ -239,14 +239,23 @@ with tab4:
             "provinsi_display": False,
             "is_selected": False
         },
+        color_continuous_scale=["#f0f0f0", "#2e7d32"],  # Abu-abu light ke hijau
         title=f"Persebaran Cluster {cluster_selected}",
         labels={"is_selected": "Cluster"}
     )
 
     fig.update_geos(
-        fitbounds="locations",
-        visible=False,
-        bgcolor="white"
+        scope="asia",
+        projection_type="mercator",
+        showland=True,
+        landcolor="rgba(243, 243, 243, 0.5)",
+        coastcolor="rgba(204, 204, 204, 0.5)",
+        visible=True,
+        bgcolor="white",
+        showlakes=True,
+        lakecolor="rgba(255, 255, 255, 0.5)",
+        lataxis=dict(range=[-11, 6]),
+        lonaxis=dict(range=[95, 141])
     )
 
     fig.update_layout(
