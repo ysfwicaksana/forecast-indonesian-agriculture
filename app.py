@@ -212,11 +212,11 @@ with tab4:
         how="left"
     )
     
-    # Buat kolom untuk warna
-    map_data["warna"] = map_data.apply(
-        lambda row: f"Cluster {cluster_selected}" 
+    # Buat kolom untuk warna (binary: ada di cluster atau tidak)
+    map_data["in_cluster"] = map_data.apply(
+        lambda row: "Ya" 
         if pd.notna(row["kluster"]) and row["kluster"] == cluster_selected 
-        else "Cluster Lain",
+        else "Tidak",
         axis=1
     )
     
@@ -230,19 +230,18 @@ with tab4:
         geojson=indonesia_geo,
         locations="provinsi_geo",
         featureidkey="properties.PROVINSI",
-        color="warna",
+        color="in_cluster",
         hover_name="provinsi_display",
         hover_data={
             "provinsi_geo": False,
             "kluster": True,
             "provinsi_display": False,
-            "warna": False
+            "in_cluster": False
         },
         color_discrete_map={
-            f"Cluster {cluster_selected}": "#0d47a1",  # Biru tua
-            "Cluster Lain": "#90caf9"  # Biru muda
+            "Ya": "#1f77b4",  # Biru
+            "Tidak": "rgba(0,0,0,0)"  # Transparent
         },
-        category_orders={"warna": [f"Cluster {cluster_selected}", "Cluster Lain"]},
         title=f"Persebaran Cluster {cluster_selected}"
     )
 
