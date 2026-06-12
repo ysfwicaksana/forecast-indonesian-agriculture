@@ -239,7 +239,6 @@ with tab4:
             "provinsi_display": False,
             "is_selected": False
         },
-        color_continuous_scale=["#f0f0f0", "#2e7d32"],  # Abu-abu light ke hijau
         title=f"Persebaran Cluster {cluster_selected}",
         labels={"is_selected": "Cluster"}
     )
