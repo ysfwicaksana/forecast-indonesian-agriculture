@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import json
 
 # =====================
 # Konfigurasi Halaman
@@ -65,6 +66,16 @@ def load_data():
 df_global, df_cluster = load_data()
 
 # =====================
+# Load GeoJSON
+# =====================
+with open(
+    "indonesia-38-provinces.geojson",
+    "r",
+    encoding="utf-8"
+) as f:
+    indonesia_geo = json.load(f)
+
+# =====================
 # Judul
 # =====================
 st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
@@ -72,11 +83,12 @@ st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 # =====================
 # Tabs
 # =====================
-tab1, tab2, tab3 = st.tabs(
+tab1, tab2, tab3, tab4 = st.tabs(
     [
         "📍 Prioritas per Wilayah",
         "🌱 Prioritas per Komoditas",
-        "🌳 Prioritas per Cluster"
+        "🌳 Prioritas per Cluster",
+        "🗺️ Peta Cluster"
     ]
 )
 
@@ -284,3 +296,112 @@ with tab3:
             f"{cluster_summary['jumlah_provinsi'].mean():.1f}"
         )
  
+# =====================================================
+# TAB 4 : PETA CLUSTER
+# =====================================================
+with tab4:
+
+    st.markdown("## 🗺️ Peta Persebaran Cluster")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        subsektor = st.selectbox(
+            "Pilih Subsektor",
+            sorted(
+                df_cluster["subsektor"].unique()
+            ),
+            key="map_subsektor"
+        )
+
+    data_sub = (
+        df_cluster[
+            df_cluster["subsektor"] == subsektor
+        ]
+    )
+
+    with col2:
+        cluster = st.selectbox(
+            "Pilih Cluster",
+            sorted(
+                data_sub["kluster"].unique()
+            ),
+            key="map_cluster"
+        )
+
+    # ====================================
+    # DATA PETA
+    # ====================================
+
+    map_data = data_sub.copy()
+
+    map_data["status"] = "Cluster Lain"
+
+    map_data.loc[
+        map_data["kluster"] == cluster,
+        "status"
+    ] = f"Cluster {cluster}"
+
+    fig = px.choropleth(
+        map_data,
+        geojson=indonesia_geo,
+        locations="provinsi",
+        featureidkey="properties.PROVINSI",
+        color="status",
+        hover_name="provinsi",
+        title=f"Persebaran Cluster {cluster} - {subsektor}"
+    )
+
+    fig.update_geos(
+        fitbounds="locations",
+        visible=False
+    )
+
+    fig.update_layout(
+        height=650,
+        margin=dict(
+            l=0,
+            r=0,
+            t=50,
+            b=0
+        )
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    # ====================================
+    # LIST WILAYAH
+    # ====================================
+
+    wilayah_cluster = (
+        data_sub[
+            data_sub["kluster"] == cluster
+        ]
+        .sort_values("provinsi")
+    )
+
+    st.subheader(
+        f"📍 Wilayah dalam Cluster {cluster}"
+    )
+
+    st.metric(
+        "Jumlah Provinsi",
+        len(wilayah_cluster)
+    )
+
+    daftar = (
+        wilayah_cluster[
+            ["provinsi"]
+        ]
+        .reset_index(drop=True)
+    )
+
+    daftar.index += 1
+
+    st.dataframe(
+        daftar,
+        use_container_width=True
+    )
