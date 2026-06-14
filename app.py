@@ -34,7 +34,7 @@ st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 # =====================
 # Tabs
 # =====================
-tab1, tab2, tab4 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🗺️ Peta Cluster",
     "📊 Prioritas",
     "📊 Top 10 Prioritas Global"
@@ -122,12 +122,15 @@ with tab1:
 with tab2:
     st.markdown("## 📊 Prioritas")
     
-    # ====== SIDEBAR MENU ======
-    menu_prioritas = st.sidebar.radio(
+    # ====== MENU DI DALAM TAB 2 ======
+    menu_prioritas = st.radio(
         "Pilih Menu:",
         ["📍 Prioritas per Wilayah", "🌱 Prioritas per Komoditas"],
-        key="menu_prioritas"
+        key="menu_prioritas",
+        horizontal=True
     )
+    
+    st.divider()  # Garis pemisah
     
     # ====== MENU 1: PRIORITAS PER WILAYAH ======
     if menu_prioritas == "📍 Prioritas per Wilayah":
@@ -158,7 +161,7 @@ with tab2:
             )
             top3.index = top3.index + 1
             st.subheader(f"🌱 {subsektor}")
-            st.dataframe(top3, use_container_width=True)
+            st.dataframe(top3, use_container_width=True,height=400)
     
     # ====== MENU 2: PRIORITAS PER KOMODITAS ======
     elif menu_prioritas == "🌱 Prioritas per Komoditas":
@@ -175,18 +178,18 @@ with tab2:
 
         top3 = (
             data_komoditas
-            .nsmallest(3, "ranking_topsis_per_komoditas")
+            .sort_values("ranking_topsis_per_komoditas")
             [["provinsi", "subsektor", "prediksi_produksi_2026", 
               "prediksi_produktivitas_2026", "ranking_topsis_per_komoditas"]]
             .reset_index(drop=True)
         )
         top3.index = top3.index + 1
-        st.dataframe(top3, use_container_width=True)
+        st.dataframe(top3, use_container_width=True,height=400)
 
 # =====================================================
-# TAB 4 : TOP 10 PRIORITAS GLOBAL
+# TAB 3 : TOP 10 PRIORITAS GLOBAL
 # =====================================================
-with tab4:
+with tab3:
     st.markdown("## 📊 Top 10 Prioritas Global")
     
     # Ambil top 10 berdasarkan ranking_topsis_global
