@@ -197,11 +197,11 @@ with tab4:
         )
     if "ranking_topsis_global" in top10_display.columns:
         top10_display["ranking_topsis_global"] = top10_display["ranking_topsis_global"].apply(
-            lambda x: f"{x:,.4f}" if pd.notna(x) else "-"
+            lambda x: f"{x:,.0f}" if pd.notna(x) else "-"
         )
     if "ranking_topsis_per_komoditas" in top10_display.columns:
         top10_display["ranking_topsis_per_komoditas"] = top10_display["ranking_topsis_per_komoditas"].apply(
-            lambda x: f"{x:,.4f}" if pd.notna(x) else "-"
+            lambda x: f"{x:,.0f}" if pd.notna(x) else "-"
         )
     
     st.dataframe(top10_display, use_container_width=True)
