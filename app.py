@@ -9,7 +9,7 @@ import json
 # =====================
 @st.cache_data
 def load_data():
-    df_global = pd.read_csv("global.csv", sep=";", decimal=",")
+    df_global = pd.read_csv("prioritas_2026.csv", sep=";", decimal=",")
     df_cluster = pd.read_csv("cluster_provinces.csv", sep=";", decimal=",")
     
     df_global["prediksi_produksi_2026"] = df_global["prediksi_produksi_2026"].clip(lower=0)
@@ -34,10 +34,9 @@ st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 # =====================
 # Tabs
 # =====================
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab4 = st.tabs([
     "🗺️ Peta Cluster",
-    "📍 Prioritas per Wilayah",
-    "🌱 Prioritas per Komoditas",
+    "📊 Prioritas",
     "📊 Top 10 Prioritas Global"
 ])
 
@@ -118,58 +117,71 @@ with tab1:
     st.dataframe(wilayah_cluster, use_container_width=True)
 
 # =====================================================
-# TAB 2 : WILAYAH
+# TAB 2 : PRIORITAS (WILAYAH & KOMODITAS)
 # =====================================================
 with tab2:
-    wilayah = st.selectbox(
-        "Pilih Wilayah",
-        sorted(df_global["provinsi"].unique()),
-        key="wilayah"
+    st.markdown("## 📊 Prioritas")
+    
+    # ====== SIDEBAR MENU ======
+    menu_prioritas = st.sidebar.radio(
+        "Pilih Menu:",
+        ["📍 Prioritas per Wilayah", "🌱 Prioritas per Komoditas"],
+        key="menu_prioritas"
     )
+    
+    # ====== MENU 1: PRIORITAS PER WILAYAH ======
+    if menu_prioritas == "📍 Prioritas per Wilayah":
+        st.subheader("📍 Prioritas per Wilayah")
+        
+        wilayah = st.selectbox(
+            "Pilih Wilayah",
+            sorted(df_global["provinsi"].unique()),
+            key="wilayah"
+        )
 
-    data_wilayah = df_global[df_global["provinsi"] == wilayah]
-    st.markdown(f"## 📍 {wilayah}")
+        data_wilayah = df_global[df_global["provinsi"] == wilayah]
+        st.markdown(f"### Wilayah: {wilayah}")
 
-    subsektor_urut = ["Pangan", "Hortikultura", "Perkebunan"]
+        subsektor_urut = ["Pangan", "Hortikultura", "Perkebunan"]
 
-    for subsektor in subsektor_urut:
-        data_sub = data_wilayah[data_wilayah["subsektor"] == subsektor]
-        if len(data_sub) == 0:
-            continue
+        for subsektor in subsektor_urut:
+            data_sub = data_wilayah[data_wilayah["subsektor"] == subsektor]
+            if len(data_sub) == 0:
+                continue
+
+            top3 = (
+                data_sub
+                .sort_values("ranking_topsis_global")
+                [["komoditas", "prediksi_produksi_2026", 
+                  "prediksi_produktivitas_2026", "ranking_topsis_global"]]
+                .reset_index(drop=True)
+            )
+            top3.index = top3.index + 1
+            st.subheader(f"🌱 {subsektor}")
+            st.dataframe(top3, use_container_width=True)
+    
+    # ====== MENU 2: PRIORITAS PER KOMODITAS ======
+    elif menu_prioritas == "🌱 Prioritas per Komoditas":
+        st.subheader("🌱 Prioritas per Komoditas")
+        
+        komoditas = st.selectbox(
+            "Pilih Komoditas",
+            sorted(df_global["komoditas"].unique()),
+            key="komoditas"
+        )
+
+        data_komoditas = df_global[df_global["komoditas"] == komoditas]
+        st.markdown(f"### Komoditas: {komoditas}")
 
         top3 = (
-            data_sub
-            .nsmallest(3, "ranking_topsis_global")
-            [["subsektor", "komoditas", "prediksi_produksi_2026", 
-              "prediksi_produktivitas_2026", "ranking_topsis_global"]]
+            data_komoditas
+            .nsmallest(3, "ranking_topsis_per_komoditas")
+            [["provinsi", "subsektor", "prediksi_produksi_2026", 
+              "prediksi_produktivitas_2026", "ranking_topsis_per_komoditas"]]
             .reset_index(drop=True)
         )
         top3.index = top3.index + 1
-        st.subheader(f"🌱 {subsektor}")
         st.dataframe(top3, use_container_width=True)
-
-# =====================================================
-# TAB 3 : KOMODITAS
-# =====================================================
-with tab3:
-    komoditas = st.selectbox(
-        "Pilih Komoditas",
-        sorted(df_global["komoditas"].unique()),
-        key="komoditas"
-    )
-
-    data_komoditas = df_global[df_global["komoditas"] == komoditas]
-    st.markdown(f"## 🌱 {komoditas}")
-
-    top3 = (
-        data_komoditas
-        .nsmallest(3, "ranking_topsis_per_komoditas")
-        [["provinsi", "subsektor", "prediksi_produksi_2026", 
-          "prediksi_produktivitas_2026", "ranking_topsis_per_komoditas"]]
-        .reset_index(drop=True)
-    )
-    top3.index = top3.index + 1
-    st.dataframe(top3, use_container_width=True)
 
 # =====================================================
 # TAB 4 : TOP 10 PRIORITAS GLOBAL
@@ -205,12 +217,3 @@ with tab4:
         )
     
     st.dataframe(top10_display, use_container_width=True)
-    
-    # Summary metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Baris", len(top10))
-    with col2:
-        st.metric("Subsektor Unik", top10["subsektor"].nunique())
-    with col3:
-        st.metric("Komoditas Unik", top10["komoditas"].nunique())
