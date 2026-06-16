@@ -223,7 +223,7 @@ with tab3:
     st.dataframe(top10_display, use_container_width=True)
 
 # =====================================================
-# TAB 2 : PRIORITAS (WILAYAH & KOMODITAS)
+# TAB 4 : PRIORITAS (WILAYAH & KOMODITAS)
 # =====================================================
 with tab4:
     st.markdown("## 📊 Prioritas")
