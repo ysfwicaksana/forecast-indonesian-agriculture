@@ -140,7 +140,7 @@ with tab2:
         wilayah = st.selectbox(
             "Pilih Wilayah",
             sorted(df_global["provinsi"].unique()),
-            key="wilayah"
+            key="prediksi_wilayah"
         )
 
         data_wilayah = df_global[df_global["provinsi"] == wilayah]
@@ -171,7 +171,7 @@ with tab2:
         komoditas = st.selectbox(
             "Pilih Komoditas",
             sorted(df_global["komoditas"].unique()),
-            key="komoditas"
+            key="prediksi_komoditas"
         )
 
         data_komoditas = df_global[df_global["komoditas"] == komoditas]
@@ -245,7 +245,7 @@ with tab4:
         wilayah = st.selectbox(
             "Pilih Wilayah",
             sorted(df_global["provinsi"].unique()),
-            key="wilayah"
+            key="prioritas_wilayah"
         )
 
         data_wilayah = df_global[df_global["provinsi"] == wilayah]
@@ -275,7 +275,7 @@ with tab4:
         komoditas = st.selectbox(
             "Pilih Komoditas",
             sorted(df_global["komoditas"].unique()),
-            key="komoditas"
+            key="prioritas_komoditas"
         )
 
         data_komoditas = df_global[df_global["komoditas"] == komoditas]
