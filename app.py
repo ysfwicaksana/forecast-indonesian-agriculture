@@ -37,7 +37,7 @@ st.title("🌾 Dashboard Prioritas Komoditas Pertanian 2026")
 tab1, tab2, tab3, tab4 = st.tabs([
     "🗺️ Peta Cluster",
     "📊 Prediksi & Pertumbuhan",
-    "📊 Top 10 Prioritas Global"
+    "📊 Top 10 Prioritas Global",
     "📊 Prioritas"
 ])
 
