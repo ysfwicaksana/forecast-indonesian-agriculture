@@ -9,11 +9,11 @@ import json
 # =====================
 @st.cache_data
 def load_data():
-    df_global = pd.read_csv("prioritas_2026.csv", sep=";", decimal=",")
+    df_global = pd.read_csv("prioritas_2026_new.csv", sep=";", decimal=",")
     df_cluster = pd.read_csv("cluster_provinces.csv", sep=";", decimal=",")
     
     df_global["prediksi_produksi_2026"] = df_global["prediksi_produksi_2026"].clip(lower=0)
-    df_global["prediksi_produktivitas_2026"] = df_global["prediksi_produktivitas_2026"].clip(lower=0)
+    # df_global["prediksi_produktivitas_2026"] = df_global["prediksi_produktivitas_2026"].clip(lower=0)
     
     return df_global, df_cluster
 
@@ -156,8 +156,7 @@ with tab2:
             top3 = (
                 data_sub
                 .sort_values("ranking_topsis_global")
-                [["komoditas", "prediksi_produksi_2026", 
-                  "prediksi_produktivitas_2026", "pertumbuhan_produksi_2026"]]
+                [["komoditas", "prediksi_produksi_2026", "pertumbuhan_produksi_2026"]]
                 .reset_index(drop=True)
             )
             top3.index = top3.index + 1
@@ -180,8 +179,7 @@ with tab2:
         top3 = (
             data_komoditas
             .sort_values("ranking_topsis_per_komoditas")
-            [["provinsi", "subsektor", "prediksi_produksi_2026", 
-              "prediksi_produktivitas_2026", "pertumbuhan_produksi_2026",]]
+            [["provinsi", "subsektor", "prediksi_produksi_2026",  "pertumbuhan_produksi_2026",]]
             .reset_index(drop=True)
         )
         top3.index = top3.index + 1
