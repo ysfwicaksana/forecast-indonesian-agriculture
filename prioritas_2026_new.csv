@@ -1,4 +1,4 @@
-subsektor;komoditas;provinsi;tahun;kluster;silhouette_score_komoditas;c1_produksi_aktual_terakhir;c2_luas_panen;c3_prediksi_produksi;c4_pertumbuhan_produksi;nilai_topsis;ranking_topsis_global;ranking_topsis_per_komoditas;luas_panen;prediksi_produksi_2026;pertumbuhan_produksi_2026;
+subsektor;komoditas;provinsi;tahun;kluster;silhouette_score_komoditas;c1_produksi_aktual_terakhir;c2_luas_panen;c3_prediksi_produksi;c4_pertumbuhan_produksi;nilai_preferensi_topsis;ranking_topsis_global;ranking_topsis_per_komoditas;luas_panen;prediksi_produksi_2026;pertumbuhan_produksi_2026;
 Hortikultura;Alpukat;Aceh;2026;2;0,68173952;2776,620667;1198,5;28876,03516;939,9704757;0,001987889;515;10;5958,215556;81312,02344;2898,252695;
 Hortikultura;Alpukat;Bali;2026;3;0,68173952;10298,11267;620,3933333;6452,512207;-37,34276934;0,001502824;675;18;53,89111111;632,0782471;-33,81929385;
 Hortikultura;Alpukat;Banten;2026;3;0,68173952;12823,886;570,8166667;8163,973145;-36,33775952;0,00157949;636;16;10,69222222;632,0782471;142,2402329;

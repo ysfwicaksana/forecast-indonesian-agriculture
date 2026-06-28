@@ -195,7 +195,7 @@ with tab3:
     top10 = (
         df_global
         .nsmallest(10, "ranking_topsis_global")
-        [["subsektor", "komoditas", "provinsi", "pertumbuhan_produksi_2026", 
+        [["subsektor", "komoditas", "provinsi", "pertumbuhan_produksi_2026", "nilai_preferensi_topsis",
           "ranking_topsis_global", "ranking_topsis_per_komoditas"]]
         .reset_index(drop=True)
     )
@@ -259,7 +259,7 @@ with tab4:
             top3 = (
                 data_sub
                 .sort_values("ranking_topsis_global")
-                [["komoditas", "ranking_topsis_global"]]
+                [["komoditas", "nilai_preferensi_topsis","ranking_topsis_global"]]
                 .reset_index(drop=True)
             )
             top3.index = top3.index + 1
@@ -282,7 +282,7 @@ with tab4:
         top3 = (
             data_komoditas
             .sort_values("ranking_topsis_per_komoditas")
-            [["provinsi", "subsektor", "ranking_topsis_per_komoditas"]]
+            [["provinsi", "subsektor", "nilai_preferensi_topsis","ranking_topsis_per_komoditas"]]
             .reset_index(drop=True)
         )
         top3.index = top3.index + 1
